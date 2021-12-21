@@ -1,0 +1,369 @@
+---
+title: "Examples Included The Manuscript (He P, Ni P, Zhang F and Yu C 2021)"
+author: "Chang Yu"
+date: "11/10/2021"
+output:
+  pdf_document:
+    toc: yes
+    number_sections: yes
+  html_document:
+    toc: yes
+    df_print: paged
+  word_document:
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introduction
+```{r}
+library(corrTests)
+```
+
+A small R package `corrTests` is created to provide the calculation of rejection boundaries and power for correlated logrank tests used in overlapping populations. Refer to the manuscript for technical details (He et al 2021).
+
+The core functions in `corrTests` include the following. After the package is installed, details can be found by browsing them in $R$, `help(package="corrTests")`. 
+\begin{enumerate}
+\item 
+corrBounds - 	Rejection Boundaries Of Correlated Tests in Group Sequential Design Using Time-To-Event Endpoints.
+\item 
+corrTime - Correlation Between Two Logrank Test Statistics Over Time With Staggered Entry.
+\item 
+simplePower - This function calculates the power for the given number of events and rejection boundary for each analysis separately. With improved rejection boundary after considering the correlation, this function facilitates the calculation of power. 
+\item 
+`corrEvents` - Expected Number of Events Over Time With Staggered Entry For Overlapping Populations. This is a supportive function used in the core functions.
+\end{enumerate}
+
+Section 2 describes the installation instructions, and Section 3 - 5 describe each of the core functions. Examples 1, 2, 3 correspond to the same examples in the manuscript. Example 4 corresponds to Figure 2 in the manuscript. Example 5 corresponds to the power calculation for example 3 in the manuscript.  
+
+# Installation of `corrTests`
+
+This R package is a collection of the R source files used in the manuscript (He et al. 2021). For installation, please follow the instructions below. Note that the dependent packages `gsDesign`, `mvtnorm` and `devtools` need to be installed first if not yet.
+
+```
+#Install devtools if not installed
+install.packages("devtools")
+
+#Unzip the corrTests_sent_to_SIM.zip file and save to a local folder such as C:/myfolder/corrTests
+
+
+##Uninstall the previous version
+remove.packages("corrTests")
+
+#Install the package
+#devtools::install(pkg="C:/myfolder/corrTests") 
+
+#Load the package
+library(corrTests)
+
+#Browse the functions in the package
+help(package="corrTests")
+```
+
+# Function `corrBounds`
+
+This function calculates the rejection boundaries in p value (significance level) and z value in group sequential design based on the alpha spending function for each test (He et al 2021). 
+
+## Example 1. Nested Populations In Single Time Analysis
+
+Consider two hypothesis tests for a subgroup and overall population are performed at a single time analysis. The number of target events is 250 for the subgroup and 400 for the overall population. Assume the randomization is 1:1 and the family-wise one-sided type I error 0.025 is allocated to the subgroup and overall population with weights 1/3 and 2/3 respectively.
+
+### Balanced allocation of efficiency, stratified analysis
+
+```{r}
+corrBounds(sf=list(sfuA=gsDesign::sfLDOF, sfuB=gsDesign::sfLDOF), 
+   eAandB = c(250), eAnotB = c(0), eBnotA = c(150),
+   r=list(AandB = 1/2, AnotB=0, BnotA=1/2), rA=1/2, rB=1/2, gamma = NA,
+   strat.ana="Y",alpha=0.025, w=c(1/3, 2/3),epsA = c(NA), epsB=c(NA),
+   method=c("Balanced Allocation"))
+```
+
+
+### Customized allocation of efficiency: only improve the overall population testing, stratified analysis
+
+```{r}
+corrBounds(sf=list(sfuA=gsDesign::sfLDOF, sfuB=gsDesign::sfLDOF), 
+   eAandB = c(250), eAnotB = c(0), eBnotA = c(150),
+   r=list(AandB = 1/2, AnotB=0, BnotA=1/2), rA=1/2, rB=1/2, gamma = NA,
+   strat.ana=c("Y"),alpha=0.025, w=c(1/3, 2/3),epsA = c(1), epsB=c(NA),
+   method=c("Customized Allocation"))
+```
+### Customized allocation of efficiency: only improve subgroup testing, stratified analysis
+
+```{r}
+corrBounds(sf=list(sfuA=gsDesign::sfLDOF, sfuB=gsDesign::sfLDOF), 
+   eAandB = c(250), eAnotB = c(0), eBnotA = c(150),
+   r=list(AandB = 1/2, AnotB=0, BnotA=1/2), rA=1/2, rB=1/2, gamma = NA,
+   strat.ana=c("Y"),alpha=0.025, w=c(1/3, 2/3),epsA = c(NA), epsB=c(1),
+   method=c("Customized Allocation"))
+```
+
+### Balanced allocation of efficiency, unstratified analysis
+
+The next two subsections included un-stratified analysis for this example. They are not reported in the manuscript (He et al. 2021). We include them here to demonstrate how to get the rejection boundary under un-stratified analysis.
+
+For un-stratified analysis, the parameter `gamma` is required, which is the proportion of subjects in the overlapped subgroup among all subjects. For this example, `gamma` is the proportion of subjects in the subgroup. Assume the subgroup has 70% of the subjects out of the total, i.e., `gamma = 0.7`. Then the rejection boundary can be calculated below.
+
+```{r}
+corrBounds(sf=list(sfuA=gsDesign::sfLDOF, sfuB=gsDesign::sfLDOF), 
+   eAandB = c(250), eAnotB = c(0), eBnotA = c(150),
+   r=list(AandB = 1/2, AnotB=0, BnotA=1/2), rA=1/2, rB=1/2, gamma = 0.7,
+   strat.ana="N",alpha=0.025, w=c(1/3, 2/3),epsA = c(NA), epsB=c(NA),
+   method="Balanced Allocation")
+```
+
+
+### Customized allocation of efficiency: only improve the overall population testing, unstratified Analysis
+
+```{r}
+corrBounds(sf=list(sfuA=gsDesign::sfLDOF, sfuB=gsDesign::sfLDOF), 
+   eAandB = c(250), eAnotB = c(0), eBnotA = c(150),
+   r=list(AandB = 1/2, AnotB=0, BnotA=1/2), rA=1/2, rB=1/2, gamma = 0.7,
+   strat.ana=c("N"),alpha=0.025, w=c(1/3, 2/3),epsA = c(1), epsB=c(NA),
+   method=c("Customized Allocation"))
+```
+
+## Example 2. Overlapping Populations Based on Two Biomarkers
+
+This section describes how the rejection boundaries for a study with overlapping populations defined by two biomarkers as Example 2 in the manuscript (He, et al. 2021). 
+
+### Balanced allocation of efficiency, stratified analysis
+
+```{r}
+corrBounds(sf=list(sfuA=gsDesign::sfLDOF, sfuB=gsDesign::sfLDOF), 
+   eAandB = c(120), eAnotB = c(100), eBnotA = c(80),
+   r=list(AandB = 1/2, AnotB=1/2, BnotA=1/2), rA=1/2, rB=1/2, gamma = NA,
+   strat.ana="Y",alpha=0.025, w=c(1/2, 1/2),epsA = c(NA), epsB=c(NA),
+   method="Balanced Allocation")
+```
+
+### Improve the test only in the TMB high population, stratified analysis
+
+```{r}
+corrBounds(sf=list(sfuA=gsDesign::sfLDOF, sfuB=gsDesign::sfLDOF), 
+   eAandB = c(120), eAnotB = c(100), eBnotA = c(80),
+   r=list(AandB = 1/2, AnotB=1/2, BnotA=1/2), rA=1/2, rB=1/2, gamma = NA,
+   strat.ana="Y",alpha=0.025, w=c(1/2, 1/2),epsA = c(1), epsB=c(NA),
+   method="Customized Allocation")
+```
+
+## Example 3. Nested Populations In Group Sequential Design (JAVELIN-100)
+
+JAVELIN-100 (Powles et al 2020) is a phase 3 study of maintenance therapy for advanced or metastatic urothelial carcinoma. The dual primary endpoints are OS in PD-L1+ population ($H_A$) and overall population ($H_B$). Subjects were equally randomized to receive best supportive care (BSC) with or without avelumab (N = 350 for each group). The randomization was stratified by best response to first line chemotherapy (CR or PR vs SD) and metastatic site (visceral vs non-visceral) at the time of initiating first-line chemotherapy, but not by PD-L1 status. Among subjects with evaluable tissue samples, 189 patients in the avelumab group and in 169 in the control group are PD-L1 positive. The primary analysis of the overall population is not stratified by PD-L1 status. Among PD-L1 positive subjects, 53% subjects were randomized to avelumab plus BSC group ($r_{PD-L1+}=0.53$). Among the subjects not PD-L1 positive,  47% subjects were randomized to avelumab plus BSC group ($r_{not PD-L1+}=0.47$). Among all subjects in overall population, 51% subjects are in PD-L1 positive population ($\gamma=0.51$). One interim analysis was performed with 143 events in PD-L1+ subgroup and 324 events in overall population after the study is fully enrolled. The target number of events at the FA was planned to be 219 in PD-L1+ subgroup and 425 in overall population. 
+
+Several strategies of improving the rejection boundaries are calculated below.
+
+### Equal Allocation: $\epsilon_{A1} = \epsilon_{B1}$, and $\epsilon_{A2} = \epsilon_{B2}$, unstratified analysis
+
+```{r}
+jv100a = corrBounds(sf=list(sfuA=gsDesign::sfLDOF, sfuB=gsDesign::sfLDOF),  
+                    eAandB = c(143, 219), eAnotB = c(0,0), eBnotA = c(181, 206), 
+                    r=list(AandB = 189/358, AnotB=0, BnotA=(350-189)/(700-358)), 
+                    rA=189/358, rB=350/700, gamma = 358/700,
+                    strat.ana="N",alpha=0.025, w=c(0.01/0.025, 0.015/0.025),
+                    epsA = c(NA,NA), epsB=c(NA,NA),
+                    method="Balanced Allocation")
+
+jv100a
+```
+
+###  Improve the overall population only: $\epsilon_{A1} = \epsilon_{A2} = 1$, unstratified analysis
+
+
+```{r}
+jv100b = corrBounds(sf=list(sfuA=gsDesign::sfLDOF, sfuB=gsDesign::sfLDOF),  
+                    eAandB = c(143, 219), eAnotB = c(0,0), eBnotA = c(181, 206), 
+                    r=list(AandB = 189/358, AnotB=0, BnotA=(350-189)/(700-358)), 
+                    rA=189/358, rB=350/700, gamma = 358/700,
+                    strat.ana="N",alpha=0.025, w=c(0.01/0.025, 0.015/0.025),
+                    epsA = c(1,1), epsB=c(NA,NA), 
+                    method="Customized Allocation")
+
+jv100b
+```
+
+### Improve the PD-L1+ only: $\epsilon_{B1} = \epsilon_{B2} = 1$, unstratified analysis
+
+```{r}
+jv100c = corrBounds(sf=list(sfuA=gsDesign::sfLDOF, sfuB=gsDesign::sfLDOF),
+                    eAandB = c(143, 219), eAnotB = c(0,0), eBnotA = c(181, 206), 
+                    r=list(AandB = 189/358, AnotB=0, BnotA=(350-189)/(700-358)), 
+                    rA=189/358, rB=350/700, gamma = 358/700, strat.ana="N",
+                    alpha=0.025, w=c(0.01/0.025, 0.015/0.025),
+                    epsA = c(NA,NA), epsB=c(1,1), 
+                    method="Customized Allocation")
+
+jv100c
+```
+### Improve the PD-L1+ at IA and Overall at FA: $\epsilon_{B1} = 1$, $\epsilon_{A2} = 1$, unstratified analysis
+
+```{r}
+jv100d = corrBounds(sf=list(sfuA=gsDesign::sfLDOF, sfuB=gsDesign::sfLDOF),
+                    eAandB = c(143, 219), eAnotB = c(0,0), eBnotA = c(181, 206), 
+                    r=list(AandB = 189/358, AnotB=0, BnotA=(350-189)/(700-358)), 
+                    rA=189/358, rB=350/700, gamma = 358/700, strat.ana="N",
+                    alpha=0.025, w=c(0.01/0.025, 0.015/0.025),
+                    epsA = c(NA,1), epsB=c(1,NA), 
+                    method="Customized Allocation")
+
+jv100d
+```
+### Improve the overall at IA and PD-L1+ at FA: $\epsilon_{A1} = 1$, $\epsilon_{B2} = 1$, unstratified analysis
+
+```{r}
+jv100e = corrBounds(sf=list(sfuA=gsDesign::sfLDOF, sfuB=gsDesign::sfLDOF),
+                    eAandB = c(143, 219), eAnotB = c(0,0), eBnotA = c(181, 206), 
+                    r=list(AandB = 189/358, AnotB=0, BnotA=(350-189)/(700-358)), 
+                    rA=189/358, rB=350/700, gamma = 358/700, strat.ana="N",
+                    alpha=0.025, w=c(0.01/0.025, 0.015/0.025),
+                    epsA = c(1,NA), epsB=c(NA,1), 
+                    method="Customized Allocation")
+
+jv100e
+```
+
+
+# Function `corrTime`
+
+This function calculates the correlation of two logrank test statistics on overlapping populations $A$ and $B$ over time from first subject in. 
+
+## Example 4. Correlation Over Time (Figure 2 in the manuscript)
+
+Consider a study in which the control arm event has exponential distribution with median 12 months in all strata. The study uses 1:1 randomization stratified by PD-L1+ status. Consider a study with 1:1 randomization and the enrollment follows non-uniform enrollment distribution with cumulative enrollment $\Lambda(t) = (\frac{t}{18})^{1.5}I_{t\le 18} +I_{t>18}$ at time $t$, i.e. the enrollment distribution has weight 1.5 and enrollment period of 18 months.
+There are 300 subjects in PD-L1+ and 750 total subjects in overall population. Assume 3\% drop-off for one year of followup. Define various distributions for the experimental arm, and the corresponding hazard functions and survival functions specified below.
+
+```{r}
+#################
+# h(t) and S(t)
+#################
+
+h0 = function(t){log(2)/12}
+S0 = function(t){exp(-log(2)/12 * t)}
+h0.5 = function(t){log(2)/12*0.5}
+h0.65 = function(t){log(2)/12*0.65}
+h0.8 = function(t){log(2)/12*0.8}
+S0.5 = function(t){exp(-log(2)/12 * 0.5 * t)}
+S0.65 = function(t){exp(-log(2)/12 * 0.65 * t)}
+S0.8 = function(t){exp(-log(2)/12 * 0.8 * t)}
+```
+
+The entry and drop-off distributions are defined herein. 
+
+```{r}
+#Entry distribution: enrollment period 18 mo, acceleration weight 1.5.
+Fe = function(t){(t/18)^1.5*as.numeric(t <= 18) + as.numeric(t > 18)}
+
+#Drop-off distribution: 3\% drop-off every year.
+G = function(t){1-exp(-0.03/12*t)}
+
+```
+
+Plot correlation over time after enrollment complete
+
+```{r}
+t = seq(18, 100, 1) #Time of data cut-off , must be greater than enrollment period 18.
+omega = matrix(NA, nrow=6, ncol=length(t))
+
+for (i in 1:length(t)){
+  #(1) Homogeneous regardless of PD-L1 status: HR = 0.65
+  omega[1,i]=corrTime(T = t[i], n = list(AandB = 300, AnotB=0, BnotA=450), 
+      r = list(AandB=1/2, AnotB =0, BnotA = 1/2), rA=1/2, rB=1/2, 
+      h0=list(AandB=h0, AnotB=h0, BnotA=h0), 
+      S0=list(AandB=S0, AnotB=S0, BnotA=S0),
+      h1=list(AandB=h0.65, AnotB=NULL, BnotA=h0.65), 
+      S1=list(AandB=S0.65, AnotB=NULL, BnotA=S0.65),
+      F.entry = Fe, G.ltfu = G, strat.ana="Y")$corr
+      
+  omega[2,i]=corrTime(T = t[i], n = list(AandB = 300, AnotB=0, BnotA=450), 
+      r = list(AandB=1/2, AnotB =0, BnotA = 1/2), rA=1/2, rB=1/2, 
+      h0=list(AandB=h0, AnotB=h0, BnotA=h0), 
+      S0=list(AandB=S0, AnotB=S0, BnotA=S0),
+      h1=list(AandB=h0.65, AnotB=NULL, BnotA=h0.65), 
+      S1=list(AandB=S0.65, AnotB=NULL, BnotA=S0.65),
+      F.entry = Fe, G.ltfu = G, strat.ana="N")$corr
+      
+  #(2) Stronger effect in PD-L1+: HR = 0.65; PD-L1-: HR = 0.85
+  omega[3,i]=corrTime(T = t[i], n = list(AandB = 300, AnotB=0, BnotA=450), 
+      r = list(AandB=1/2, AnotB =0, BnotA = 1/2), rA=1/2, rB=1/2,
+      h0=list(AandB=h0, AnotB=h0, BnotA=h0), 
+      S0=list(AandB=S0, AnotB=S0, BnotA=S0),
+      h1=list(AandB=h0.65, AnotB=NULL, BnotA=h0.8), 
+      S1=list(AandB=S0.65, AnotB=NULL, BnotA=S0.8),
+      F.entry = Fe, G.ltfu = G, strat.ana="Y")$corr
+      
+  omega[4,i]=corrTime(T = t[i], n = list(AandB = 300, AnotB=0, BnotA=450), 
+      r = list(AandB=1/2, AnotB =0, BnotA = 1/2), rA=1/2, rB=1/2,
+      h0=list(AandB=h0, AnotB=h0, BnotA=h0), 
+      S0=list(AandB=S0, AnotB=S0, BnotA=S0),
+      h1=list(AandB=h0.65, AnotB=NULL, BnotA=h0.8), 
+      S1=list(AandB=S0.65, AnotB=NULL, BnotA=S0.8),
+      F.entry = Fe, G.ltfu = G, strat.ana="N")$corr
+      
+  #(3) Weaker effect in PD-L1+: HR = 0.85; PD-L1-: HR = 0.65
+  omega[5,i]=corrTime(T = t[i], n = list(AandB = 300, AnotB=0, BnotA=450), 
+      r = list(AandB=1/2, AnotB =0, BnotA = 1/2), rA=1/2, rB=1/2, 
+      h0=list(AandB=h0, AnotB=h0, BnotA=h0), 
+      S0=list(AandB=S0, AnotB=S0, BnotA=S0),
+      h1=list(AandB=h0.65, AnotB=NULL, BnotA=h0.5), 
+      S1=list(AandB=S0.65, AnotB=NULL, BnotA=S0.5),
+      F.entry = Fe, G.ltfu = G, strat.ana="Y")$corr
+      
+  omega[6,i]=corrTime(T = t[i], n = list(AandB = 300, AnotB=0, BnotA=450), 
+      r = list(AandB=1/2, AnotB =0, BnotA = 1/2), rA=1/2, rB=1/2,
+      h0=list(AandB=h0, AnotB=h0, BnotA=h0), 
+      S0=list(AandB=S0, AnotB=S0, BnotA=S0),
+      h1=list(AandB=h0.65, AnotB=NULL, BnotA=h0.5), 
+      S1=list(AandB=S0.65, AnotB=NULL, BnotA=S0.5),
+      F.entry = Fe, G.ltfu = G, strat.ana="N")$corr
+}
+
+#Plot the correlations vs time
+#tiff("Figure 2.tiff", width = 4, height = 4, units = 'in', res = 300)
+plot(t, omega[1,], type="n", ylim=range(omega),
+     xlab="Time of data cut-off  (months) From First Subject In(FSI)", 
+     ylab="Correlation", cex.lab=0.8)
+lines(t, omega[1,], lty=1, col=1, lwd=2)
+lines(t, omega[2,], lty=2, col=2, lwd=2)
+lines(t, omega[3,], lty=1, col=3, lwd=2)
+lines(t, omega[4,], lty=2, col=3, lwd=2)
+lines(t, omega[5,], lty=1, col=4, lwd=2)
+lines(t, omega[6,], lty=2, col=4, lwd=2)
+legend(18,0.642, c("PD-L1+/- HR 0.65/0.65: S", 
+                   "PD-L1+/- HR 0.65/0.65: U", "PD-L1+/- HR 0.65/0.8: S"),
+       lwd=rep(2,3), col=c(1,2,3), lty=c(1,2,1), bty="n", cex=0.6) 
+
+legend(18,0.632, c("PD-L1+/- HR 0.65/0.8: U","PD-L1+/- HR 0.65/0.5: S","PD-L1+/- HR 0.65/0.5: U"),
+       lwd=rep(2,3), col=c(3,4,4), lty=c(2,1,2), bty="n", cex=0.57) 
+```
+
+# Function `simplePower`
+
+This function calculates the power of each analysis and the overall study when the number of events and rejection boundary are given at each analysis. This function facilitates the calculation of power when the rejection boundaries are improved after incorporating the correlation between test statistics.
+
+## Example 5. Power Calculation in JAVELIN-100 With Improved Boundary
+
+For the original design based on O'Brien Fleming alpha spending function for PD-L1+ subgroup, the power without improvement of the rejection boundary is 34% and 80% for the interim analysis and overall respectively, as calculated below. Overall power means the probability of rejecting the null hypothesis at interim or final analysis.
+
+```{r}
+simplePower(events=c(143, 219), events0=NULL, events1=NULL, 
+             hr = 0.65, r = 0.5, 
+             bd.p=NULL, sf=gsDesign::sfLDOF, 
+             alpha=0.01, variance="H0")
+```
+
+As a comparison, the power with improved rejection boundary is increased to 40% and 84% for the interim and overall respectively, as calculated below. 
+
+```{r}
+simplePower(events=c(143, 219), events0=NULL, events1=NULL, 
+             hr = 0.65, r = 0.5, 
+             bd.p=c(0.0024,0.0138), sf=NULL, 
+             alpha=NULL, variance="H0")
+```
+
+# References
+
+He P, Ni P, Zhang F, and Yu C. Group Sequential Monitoring and Study Design for Time-to-Event Endpoints in Overlapping Populations. Manuscript submitted, 2021
+
+Powles T. et al (2020) Avelumab Maintenance Therapy for Advanced or Metastatic Urothelial Carcinoma. N Engl J Med 2020;383:1218-30. DOI: 10.1056/NEJMoa2002788
