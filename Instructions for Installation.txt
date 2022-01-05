@@ -1,6 +1,6 @@
 # Installation of `corrTests`
 
-This R package is a collection of the R source files used in the manuscript (He et al. 2021). 
+This R package is a collection of the R source files used in the manuscript. 
 For installation, please follow the instructions below. Note that the dependent packages `gsDesign`, `mvtnorm` 
 and `devtools` need to be installed first if not yet.
 
