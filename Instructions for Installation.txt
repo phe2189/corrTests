@@ -8,23 +8,5 @@ and `devtools` need to be installed first if not yet.
 #Install devtools if not installed
 install.packages("devtools")
 
-#Unzip the corrTests_sent_to_SIM.zip file and save to a local folder such as C:/myfolder/corrTests
-
-##Uninstall the previous version
-remove.packages("corrTests")
-
-#Install the package
-#devtools::install(pkg="C:/myfolder/corrTests") 
-
-#Load the package
-library(corrTests)
-
-#Browse the functions in the package
-help(package="corrTests")
-
-####################################################
-#Directly install the R package from github
-####################################################
-
 devtools::install_github("phe2189/corrTests")
 
