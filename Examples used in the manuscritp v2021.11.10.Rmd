@@ -1,5 +1,5 @@
 ---
-title: "Examples Included The Manuscript (He P, Ni P, Zhang F and Yu C 2021)"
+title: "Examples Included The Manuscript"
 author: "Chang Yu"
 date: "11/10/2021"
 output:
@@ -363,7 +363,5 @@ simplePower(events=c(143, 219), events0=NULL, events1=NULL,
 ```
 
 # References
-
-He P, Ni P, Zhang F, and Yu C. Group Sequential Monitoring and Study Design for Time-to-Event Endpoints in Overlapping Populations. Manuscript submitted, 2021
 
 Powles T. et al (2020) Avelumab Maintenance Therapy for Advanced or Metastatic Urothelial Carcinoma. N Engl J Med 2020;383:1218-30. DOI: 10.1056/NEJMoa2002788
