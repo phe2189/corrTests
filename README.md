@@ -1,3 +1,2 @@
 # corrTests
-Group Sequential Monitoring and Study Design for Time-to-Event Endpoints in Overlapping Populations
-test
+Improved Rejection Boundary With Flexible Efficiency Allocation for Time-to-Event Endpoints in Overlapping Populations
