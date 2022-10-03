@@ -1,0 +1,57 @@
+---
+title: "Example 1. Table 1."
+author: "Philip He"
+date: "8/20/2022"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# Example 1. (Table 1.) Single-time Analysis
+
+A hypothetical example with two hypothesis tests of progression-free survival (PFS) for a subgroup ($S$: PD-L1^+) and overall($O$) population $I=\{1, 2\}$. The analysis is performed with 250 PFS events in PD-L1^+ subset and 400 in overall population. Consider one-sided FWER $\alpha=0.025$. Weighted alpha allocations to $H_1$ and $H_2$ are $\frac{1}{3}\alpha=0.0083$ and $\frac{2}{3}\alpha=0.0167$ respectively. By the graphical approach without considering the correlation between $H_1$ and $H_2$, the transitions $g_{12} = g_{21}=1$ mean that when one hypothesis is rejected at the allocated level $\alpha_1(I) =\frac{1}{3}\alpha$ or $\alpha_2(I) =\frac{2}{3}\alpha$, then the remaining hypothesis will be tested at $\alpha$ level. When the correlation is considered, we follow the closed testing procedure (CTP): First, determine the rejection boundaries $(\alpha_1^*(I), \alpha_2^*(I))$ for $H_{12} = H_1\cap H_2$ according to the proposed framework. If $p_1 \le \alpha_1^*(I)$ or $p_2 \le \alpha_2^*(I)$, then $H_{12}$ is rejected. Then go to the next step: $H_i$ is rejected if $p_i < \alpha$ for $i=1, 2$. 
+
+Without loss of generality, consider the logrank test for overall population is stratified by the subgroup $S$ and the correlation is 0.79 based on Theorem 1. With the proposed parametric testing framework, three efficiency allocation strategies are considered: (1) Equal efficiency for both hypotheses, i.e., $\epsilon_1(I)=\epsilon_2(I)$; (2) Maximize the power for $H_2$, i.e., $\epsilon_1(I)=1$; (3) Maximize the power for $H_1$, i.e., $\epsilon_2(I)=1$. The rejection boundaries for $H_{12}$, $H_1$ and $H_2$ are summarized in Table 1. It can be seen that the rejection boundaries are improved according to the efficiency allocation strategy compared to those with the correlation ignored. The improvement can be considerable when all efficiency is allocated to a single hypothesis test.
+
+```{r}
+library(corrTests)
+```
+
+```{r}
+##########################
+# Event Ratio = 250/400
+##########################
+#(a) w = (1/3, 2/3) Equal split of alpha
+Ex1a = corrBounds(sf=list(sfuA=gsDesign::sfLDOF, sfuB=gsDesign::sfLDOF), 
+                      eAandB = 250, eAnotB = 0, eBnotA = 150,
+                      r=list(AandB = 1/2, AnotB=0, BnotA=1/2), 
+                      rA=1/2, rB=1/2, gamma = NA, strat.ana="Y",
+                      alpha=0.025, w=c(1/3, 2/3), epsA = NA, epsB=NA,
+                      method="Balanced Allocation")
+Ex1a
+```
+
+```{r}
+#(b) w = (1/3, 2/3) espA=1
+Ex1b = corrBounds(sf=list(sfuA=gsDesign::sfLDOF, sfuB=gsDesign::sfLDOF), 
+                  eAandB = 250, eAnotB = 0, eBnotA = 150,
+                  r=list(AandB = 1/2, AnotB=0, BnotA=1/2), 
+                  rA=1/2, rB=1/2, gamma = NA, strat.ana="Y",
+                  alpha=0.025, w=c(1/3, 2/3), epsA = 1, epsB=NA,
+                  method="Customized Allocation")
+Ex1b
+```
+
+```{r}
+#(c) w = (1/3, 2/3) espB=1
+Ex1c = corrBounds(sf=list(sfuA=gsDesign::sfLDOF, sfuB=gsDesign::sfLDOF), 
+                  eAandB = 250, eAnotB = 0, eBnotA = 150,
+                  r=list(AandB = 1/2, AnotB=0, BnotA=1/2), 
+                  rA=1/2, rB=1/2, gamma = NA, strat.ana="Y",
+                  alpha=0.025, w=c(1/3, 2/3), epsA = NA, epsB=1,
+                  method="Customized Allocation")
+Ex1c
+```

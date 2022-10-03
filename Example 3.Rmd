@@ -1,0 +1,43 @@
+---
+title: "Example 3"
+author: "Philip He"
+date: "10/2/2022"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r}
+library(corrTests)
+```
+## Example 3. JAVELIN-100 Study
+
+JAVELIN-100 (Powles et al 2020) is a phase 3 study of maintenance therapy for advanced or metastatic urothelial carcinoma. The dual primary endpoints are OS in PD-L1+ population (H_A) and overall population (H_B). Subjects were equally randomized to receive best supportive care (BSC) with or without avelumab (N = 350 for each group). The randomization was stratified by best response to first line chemotherapy (CR or PR vs SD) and metastatic site (visceral vs non-visceral) at the time of initiating first-line chemotherapy, but not by PD-L1 status. Among subjects with evaluable tissue samples, 189 patients in the avelumab group and in 169 in the control group are PD-L1 positive. The primary analysis of the overall population is not stratified by PD-L1 status. Among PD-L1 positive subjects, 53% subjects were randomized to avelumab plus BSC group ($r_{PD-L1+}=0.53$). Among the subjects not PD-L1 positive,  47% subjects were randomized to avelumab plus BSC group ($r_{not PD-L1+}=0.47$). Among all subjects in overall population, 51% subjects are in PD-L1 positive population ($\gamma=0.51$). One interim analysis was performed with 143 events in PD-L1+ subgroup and 324 events in overall population after the study is fully enrolled.
+
+Several strategies of improving the rejection boundaries are calculated below.
+
+### Equal Allocation: $\epsilon_{11} = \epsilon_{21}$, and $\epsilon_{12} = \epsilon_{22}$
+
+```{r}
+jv100a = corrBounds(sf=list(sfuA=gsDesign::sfLDOF, sfuB=gsDesign::sfLDOF),  eAandB = c(143, 219), eAnotB = c(0,0), eBnotA = c(181, 206), r=list(AandB = 189/358, AnotB=0, BnotA=(350-189)/(700-358)), rA=189/358, rB=350/700, gamma = 358/700, strat.ana="N",alpha=0.025, w=c(0.01/0.025, 0.015/0.025),epsA = c(NA,NA), epsB=c(NA,NA), method="Customized Allocation")
+
+jv100a
+```
+
+###  Improve the overall population only: $\epsilon_{11} = \epsilon_{12} = 1$
+
+
+```{r}
+jv100b = corrBounds(sf=list(sfuA=gsDesign::sfLDOF, sfuB=gsDesign::sfLDOF),  eAandB = c(143, 219), eAnotB = c(0,0), eBnotA = c(181, 206), r=list(AandB = 189/358, AnotB=0, BnotA=(350-189)/(700-358)), rA=189/358, rB=350/700, gamma = 358/700, strat.ana="N",alpha=0.025, w=c(0.01/0.025, 0.015/0.025),epsA = c(1,1), epsB=c(NA,NA), method="Customized Allocation")
+
+jv100b
+```
+
+### Improve the PD-L1+ only: $\epsilon_{21} = \epsilon_{22} = 1$
+
+```{r}
+jv100c = corrBounds(sf=list(sfuA=gsDesign::sfLDOF, sfuB=gsDesign::sfLDOF),  eAandB = c(143, 219), eAnotB = c(0,0), eBnotA = c(181, 206), r=list(AandB = 189/358, AnotB=0, BnotA=(350-189)/(700-358)), rA=189/358, rB=350/700, gamma = 358/700, strat.ana="N",alpha=0.025, w=c(0.01/0.025, 0.015/0.025),epsA = c(NA,NA), epsB=c(1,1), method="Customized Allocation")
+
+jv100c
+```

@@ -1,0 +1,171 @@
+---
+title: "Example 2. Table 2. Single-time Analysis: Two Biomakers"
+author: "Philip He"
+date: "8/20/2022"
+output:
+  pdf_document:
+    toc: yes
+    number_sections: yes
+  html_document:
+    toc: yes
+    df_print: paged
+  word_document:
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# Background
+
+Consider a more general case in a hypothetical example shown in Figure 4 for testing two subgroups ($H_1$: PFS in PD-L1^+ subset ($S_1$); $H_2$: PFS in TMB high subset ($S_2$)) and $H_3:$ PFS in overall population ($O$) regardless of PD-L1 and TMB status. Subjects are randomized with PD-L1 status and TMB status as stratification factors. Stratified logrank tests are performed by PD-L1 status and TMB status. The numbers of events for PD-L1^+ ($S_1$), TMB high ($S_2$), $S_1\cap S_2$, and overall population are 220, 200, 120, and 500 respectively.
+According to Theorem 1, the correlations among the pairwise tests are 0.57 for $H_1$ and $H_2$, 0.66 for $H_1$ and $H_3$, and 0.63 for $H_2$ and $H_3$. 
+
+
+```{r}
+library(corrTests)
+```
+
+# Correlation Matrix
+
+The correlation matrix can be obtained below.
+```{r}
+corr = matrix(1, nrow=3, ncol=3)
+corr[1, 2] = corr[2, 1] = corrZ(e.strat = list(AandB1=120, AnotB1=100, AandB2=120, BnotA2=80),
+   e.unstr = list(A1=220, B2=200, minAorB=300),                 
+   r.strat = list(AandB = 1/2, AnotB=1/2, BnotA=1/2),
+   r.unstr = list(A=1/2, B=1/2, AandB=1/2), pAandB.unstr = 0.5,
+   strat = c("Y"), method = c("Observed"))
+   
+corr[1, 3] = corr[3, 1] = corrZ(e.strat = list(AandB1=220, AnotB1=0, AandB2=220, BnotA2=280),
+   e.unstr = list(A1=220, B2=500, minAorB=500),                 
+   r.strat = list(AandB = 1/2, AnotB=1/2, BnotA=1/2),
+   r.unstr = list(A=1/2, B=1/2, AandB=1/2), pAandB.unstr = 0.5,
+   strat = c("Y"), method = c("Observed"))    
+corr[2, 3] = corr[3, 2] = corrZ(e.strat = list(AandB1=200, AnotB1=0, AandB2=200, BnotA2=300),
+   e.unstr = list(A1=200, B2=500, minAorB=500),                 
+   r.strat = list(AandB = 1/2, AnotB=1/2, BnotA=1/2),
+   r.unstr = list(A=1/2, B=1/2, AandB=1/2), pAandB.unstr = 0.5,
+   strat = c("Y"), method = c("Observed"))    
+
+corr
+```
+# Different strategies of efficiency allocation
+
+## First level in the closed testing procedure: $H_{123}$
+
+### Strategy 1: Balanced: $\epsilon_{j\in J}(J) = \epsilon_J$ 
+
+```{r}
+corrBoundsST(alpha = 0.025, w = c(1/4, 1/4, 1/2), eps = c(NA,NA,NA), corr=corr)
+```
+
+### Strategy 2: Maximize $H_1$: $\epsilon_{j\in \{J\backslash \{1\}\}}(J) = 1$
+
+```{r}
+corrBoundsST(alpha = 0.025, w = c(1/4, 1/4, 1/2), eps = c(NA,1,1), corr=corr)
+```   
+
+### Strategy 3: Maximize $H_2$: $\epsilon_{j\in \{J\backslash \{2\}\}}(J) = 1$
+```{r}
+corrBoundsST(alpha = 0.025, w = c(1/4, 1/4, 1/2), eps = c(1,NA,1), corr=corr)
+```
+
+### Strategy 4: Maximize $H_3$: $\epsilon_{j\in \{J\backslash \{3\}\}}(J) = 1$
+```{r}
+corrBoundsST(alpha = 0.025, w = c(1/4, 1/4, 1/2), eps = c(1,1,NA), corr=corr)
+```
+
+### Strategy 5:Maximize $H_1$ and $H_2$: $\epsilon_{3}(J) = 1$ and $\epsilon_{1}(J) = \epsilon_{2}(J)$. 
+```{r}
+corrBoundsST(alpha = 0.025, w = c(1/4, 1/4, 1/2), eps = c(NA,NA,1), corr=corr)
+```
+## Second level in the closed testing procedure: $H_{12}$
+
+### $Strategy 1: Balanced: $\epsilon_{j\in J}(J) = \epsilon_J$ 
+
+```{r}
+corrBoundsST(alpha = 0.025, w = c(1/2, 1/2), eps = c(NA,NA), corr=corr[1:2,1:2])
+```
+
+### Strategy 2: Maximize $H_1$: $\epsilon_{j\in \{J\backslash \{1\}\}}(J) = 1$
+
+```{r}
+corrBoundsST(alpha = 0.025, w = c(1/2, 1/2), eps = c(NA,1), corr=corr[1:2,1:2])
+```   
+
+### Strategy 3: Maximize $H_2$: $\epsilon_{j\in \{J\backslash \{2\}\}}(J) = 1$
+```{r}
+corrBoundsST(alpha = 0.025, w = c(1/2, 1/2), eps = c(1,NA), corr=corr[1:2,1:2])
+```
+
+### Strategy 4: Maximize $H_3$: $\epsilon_{j\in \{J\backslash \{3\}\}}(J) = 1$
+```{r}
+corrBoundsST(alpha = 0.025, w = c(1/2, 1/2), eps = c(NA,NA), corr=corr[1:2,1:2])
+```
+
+### Strategy 5:Maximize $H_1$ and $H_2$: $\epsilon_{3}(J) = 1$ and $\epsilon_{1}(J) = \epsilon_{2}(J)$. 
+```{r}
+corrBoundsST(alpha = 0.025, w = c(1/2, 1/2), eps = c(NA,NA), corr=corr[1:2,1:2])
+```
+## Second level in the closed testing procedure: $H_{23}$
+
+### $Strategy 1: Balanced: $\epsilon_{j\in J}(J) = \epsilon_J$ 
+
+```{r}
+corrBoundsST(alpha = 0.025, w = c(1/4, 3/4), eps = c(NA,NA), corr=corr[2:3,2:3])
+```
+### Strategy 2: Maximize $H_1$: $\epsilon_{j\in \{J\backslash \{1\}\}}(J) = 1$
+
+```{r}
+corrBoundsST(alpha = 0.025, w = c(1/4, 3/4), eps = c(NA,NA), corr=corr[2:3,2:3])
+```   
+
+### Strategy 3: Maximize $H_2$: $\epsilon_{j\in \{J\backslash \{2\}\}}(J) = 1$
+```{r}
+corrBoundsST(alpha = 0.025, w = c(1/4, 3/4), eps = c(NA,1), corr=corr[2:3,2:3])
+```
+
+### Strategy 4: Maximize $H_3$: $\epsilon_{j\in \{J\backslash \{3\}\}}(J) = 1$
+```{r}
+corrBoundsST(alpha = 0.025, w = c(1/4, 3/4), eps = c(1,NA), corr=corr[2:3,2:3])
+```
+
+### Strategy 5:Maximize $H_1$ and $H_2$: $\epsilon_{3}(J) = 1$ and $\epsilon_{1}(J) = \epsilon_{2}(J)$. 
+```{r}
+corrBoundsST(alpha = 0.025, w = c(1/4, 3/4), eps = c(NA,1), corr=corr[2:3,2:3])
+```
+
+## Second level in the closed testing procedure: $H_{13}$
+
+### $Strategy 1: Balanced: $\epsilon_{j\in J}(J) = \epsilon_J$ 
+
+```{r}
+corr13 = diag(2)
+corr13[1,2]=corr13[2,1]=corr[1,3]
+
+corrBoundsST(alpha = 0.025, w = c(1/4, 3/4), eps = c(NA,NA), corr=corr13)
+```
+### Strategy 2: Maximize $H_1$: $\epsilon_{j\in \{J\backslash \{1\}\}}(J) = 1$
+
+```{r}
+corrBoundsST(alpha = 0.025, w = c(1/4, 3/4), eps = c(NA,1), corr=corr13)
+```   
+
+### Strategy 3: Maximize $H_2$: $\epsilon_{j\in \{J\backslash \{2\}\}}(J) = 1$
+```{r}
+corrBoundsST(alpha = 0.025, w = c(1/4, 3/4), eps = c(NA,NA), corr=corr13)
+```
+
+### Strategy 4: Maximize $H_3$: $\epsilon_{j\in \{J\backslash \{3\}\}}(J) = 1$
+```{r}
+corrBoundsST(alpha = 0.025, w = c(1/4, 3/4), eps = c(1,NA), corr=corr13)
+```
+
+### Strategy 5:Maximize $H_1$ and $H_2$: $\epsilon_{3}(J) = 1$ and $\epsilon_{1}(J) = \epsilon_{2}(J)$. 
+```{r}
+corrBoundsST(alpha = 0.025, w = c(1/4, 3/4), eps = c(NA,1), corr=corr13)
+```
+
